@@ -8,14 +8,11 @@ public class SistemaBanco {
 
     public static void main(String[] args) {
         while (true) {
-            System.out.println("╔════════════════════════╗");
-            System.out.println("║   BEM-VINDO AO BANCO   ║");
-            System.out.println("╠════════════════════════╣");
-            System.out.println("║ 1. Criar conta         ║");
-            System.out.println("║ 2. Login               ║");
-            System.out.println("║ 3. Suporte             ║");
-            System.out.println("║ 4. Sair                ║");
-            System.out.println("╚════════════════════════╝");
+            System.out.println("\n\u2554 BEM-VINDO AO BANCO \u2557");
+            System.out.println("1. Criar conta");
+            System.out.println("2. Login");
+            System.out.println("3. Suporte");
+            System.out.println("4. Sair");
             System.out.print("Escolha uma opção: ");
             int opcao = scanner.nextInt();
 
@@ -33,24 +30,17 @@ public class SistemaBanco {
     }
 
     private static void criarConta() {
-        scanner.nextLine(); // Limpa buffer
+        scanner.nextLine();
         System.out.print("Nome do titular: ");
         String nome = scanner.nextLine();
-
         System.out.print("Senha: ");
         String senha = scanner.nextLine();
-
         System.out.println("Tipo de conta: 1. Corrente | 2. Poupança");
         int tipo = scanner.nextInt();
 
         Conta conta;
         String numero = UUID.randomUUID().toString().substring(0, 8);
-
-        if (tipo == 1) {
-            conta = new ContaCorrente(numero, nome);
-        } else {
-            conta = new ContaPoupanca(numero, nome);
-        }
+        conta = (tipo == 1) ? new ContaCorrente(numero, nome) : new ContaPoupanca(numero, nome);
 
         usuarios.add(new Usuario(nome, senha, conta));
         System.out.println("Conta criada com sucesso!");
@@ -65,8 +55,7 @@ public class SistemaBanco {
 
         Usuario usuario = usuarios.stream()
                 .filter(u -> u.getNome().equals(nome) && u.getSenha().equals(senha))
-                .findFirst()
-                .orElse(null);
+                .findFirst().orElse(null);
 
         if (usuario == null) {
             System.out.println("Credenciais inválidas!");
@@ -79,45 +68,35 @@ public class SistemaBanco {
     private static void menuConta(Usuario usuario) {
         int opcao;
         do {
-            System.out.println("\n╔══════════════════════════════╗");
-            System.out.printf ("║ Olá, %-25s║\n", usuario.getNome());
-            System.out.println("╠══════════════════════════════╣");
-            System.out.printf ("║ Tipo de conta: %-14s║\n", usuario.getConta().getTipoConta());
-            System.out.printf ("║ Saldo: R$ %-19.2f║\n", usuario.getConta().getSaldo());
-            System.out.println("╠══════════════════════════════╣");
-            System.out.println("║ 1. Depositar                 ║");
-            System.out.println("║ 2. Sacar                     ║"); // NOVA OPÇÃO
-            System.out.println("║ 3. Fazer PIX                 ║");
-            System.out.println("║ 4. Extrato PIX (últimos 5m) ║"); // RENOMEADA
-            System.out.println("║ 5. Sair                      ║");
-            System.out.println("╚══════════════════════════════╝");
-            System.out.print("Escolha uma opção: ");
+            System.out.printf("\nUsuário: %s | Tipo: %s | Saldo: R$ %.2f\n",
+                    usuario.getNome(), usuario.getConta().getTipoConta(), usuario.getConta().getSaldo());
+            System.out.println("1. Depositar\n2. Sacar\n3. Fazer PIX\n4. Extrato PIX\n5. Sair");
+            System.out.print("Escolha: ");
             opcao = scanner.nextInt();
 
             switch (opcao) {
                 case 1 -> depositar(usuario);
-                case 2 -> sacar(usuario); // NOVA FUNÇÃO
+                case 2 -> sacar(usuario);
                 case 3 -> fazerPix(usuario);
                 case 4 -> mostrarExtratoPix(usuario);
-                case 5 -> System.out.println("Saindo da conta...");
+                case 5 -> System.out.println("Saindo...");
                 default -> System.out.println("Opção inválida.");
             }
-
         } while (opcao != 5);
     }
 
     private static void depositar(Usuario usuario) {
-        System.out.print("Valor para depositar: ");
+        System.out.print("Valor: ");
         double valor = scanner.nextDouble();
         usuario.getConta().depositar(valor);
-        System.out.println("Depósito realizado com sucesso!");
+        System.out.println("Depósito realizado!");
     }
 
     private static void sacar(Usuario usuario) {
-        System.out.print("Valor para sacar: ");
+        System.out.print("Valor: ");
         double valor = scanner.nextDouble();
         if (usuario.getConta().sacar(valor)) {
-            System.out.println("Saque realizado com sucesso!");
+            System.out.println("Saque realizado!");
         } else {
             System.out.println("Saldo insuficiente.");
         }
@@ -125,13 +104,12 @@ public class SistemaBanco {
 
     private static void fazerPix(Usuario remetente) {
         scanner.nextLine();
-        System.out.print("Digite o nome do destinatário: ");
+        System.out.print("Nome do destinatário: ");
         String nomeDestinatario = scanner.nextLine();
 
         Usuario destinatario = usuarios.stream()
                 .filter(u -> u.getNome().equals(nomeDestinatario))
-                .findFirst()
-                .orElse(null);
+                .findFirst().orElse(null);
 
         if (destinatario == null) {
             System.out.println("Destinatário não encontrado.");
@@ -140,6 +118,9 @@ public class SistemaBanco {
 
         System.out.print("Valor do PIX: ");
         double valor = scanner.nextDouble();
+        scanner.nextLine();
+        System.out.print("Mensagem: ");
+        String mensagem = scanner.nextLine();
 
         if (!remetente.getConta().sacar(valor)) {
             System.out.println("Saldo insuficiente.");
@@ -148,52 +129,47 @@ public class SistemaBanco {
 
         destinatario.getConta().depositar(valor);
 
-        TransacaoPIX transacao = new TransacaoPIX(destinatario.getNome(), valor);
-        remetente.getConta().adicionarTransacaoPix(transacao);
+        TransacaoPIX t = new TransacaoPIX(remetente.getNome(), destinatario.getNome(), valor, mensagem);
+        remetente.getConta().adicionarTransacaoPix(t);
+        destinatario.getConta().adicionarTransacaoPix(t);
 
-        System.out.println("PIX enviado com sucesso!");
+        System.out.println("PIX enviado!");
     }
 
     private static void mostrarExtratoPix(Usuario usuario) {
         List<TransacaoPIX> historico = usuario.getConta().getHistoricoPix();
         LocalDateTime agora = LocalDateTime.now();
 
-        System.out.println("╔════════════════════════════════════╗");
-        System.out.println("║  EXTRATO DE PIX - Últimos 5 Min   ║");
-        System.out.println("╠════════════════════════════════════╣");
-
         List<TransacaoPIX> recentes = historico.stream()
+                .filter(t -> t.getRemetente().equals(usuario.getNome()))
                 .filter(t -> ChronoUnit.MINUTES.between(t.getDataHora(), agora) <= 5)
                 .toList();
 
         if (recentes.isEmpty()) {
-            System.out.println("║ Nenhuma transação recente         ║");
-        } else {
-            int i = 1;
-            for (TransacaoPIX t : recentes) {
-                System.out.printf("║ %d. Para: %-10s | R$ %.2f     ║\n", i++, t.getDestinatario(), t.getValor());
-            }
+            System.out.println("Nenhuma transação recente.");
+            return;
+        }
 
-            System.out.print("╠════════════════════════════════════╣\n");
-            System.out.print("Deseja reembolsar alguma? (número ou 0 para sair): ");
-            int escolha = scanner.nextInt();
+        for (int i = 0; i < recentes.size(); i++) {
+            TransacaoPIX t = recentes.get(i);
+            System.out.printf("%d. Para: %s | R$ %.2f\n   Mensagem: %s\n", i + 1, t.getDestinatario(), t.getValor(), t.getMensagem());
+        }
 
-            if (escolha > 0 && escolha <= recentes.size()) {
-                TransacaoPIX selecionada = recentes.get(escolha - 1);
+        System.out.print("Deseja reembolsar alguma? (número ou 0): ");
+        int escolha = scanner.nextInt();
 
-                Usuario destinatario = usuarios.stream()
-                        .filter(u -> u.getNome().equals(selecionada.getDestinatario()))
-                        .findFirst()
-                        .orElse(null);
+        if (escolha > 0 && escolha <= recentes.size()) {
+            TransacaoPIX t = recentes.get(escolha - 1);
+            Usuario destinatario = usuarios.stream()
+                    .filter(u -> u.getNome().equals(t.getDestinatario()))
+                    .findFirst().orElse(null);
 
-                if (destinatario != null && destinatario.getConta().sacar(selecionada.getValor())) {
-                    usuario.getConta().depositar(selecionada.getValor());
-                    System.out.println("Reembolso realizado com sucesso!");
-                } else {
-                    System.out.println("Erro no reembolso: destinatário não encontrado ou saldo insuficiente.");
-                }
+            if (destinatario != null && destinatario.getConta().sacar(t.getValor())) {
+                usuario.getConta().depositar(t.getValor());
+                System.out.println("Reembolso realizado com sucesso!");
+            } else {
+                System.out.println("Erro: destinatário sem saldo ou inexistente.");
             }
         }
-        System.out.println("╚════════════════════════════════════╝");
     }
 }
