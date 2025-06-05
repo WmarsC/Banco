@@ -1,3 +1,5 @@
+import java.util.*;
+
 public abstract class Conta {
     protected String numero;
     protected String titular;
